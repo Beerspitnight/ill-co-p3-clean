@@ -46,20 +46,25 @@ socket.setdefaulttimeout(20)  # 20 seconds timeout
 from dotenv import load_dotenv
 load_dotenv()
 
-# Decode base64 JSON and write to temp file
+# Decode base64-encoded Google credentials from Render
 creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
 
 if creds_b64:
     try:
         creds_bytes = base64.b64decode(creds_b64)
         creds_path = "/tmp/google-credentials.json"
-
+        
+        # Write to temp file
         with open(creds_path, "wb") as f:
             f.write(creds_bytes)
 
+        # ✅ This is the key part: tell Google APIs where the file is
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
+
         credentials = service_account.Credentials.from_service_account_file(creds_path)
+
     except Exception as e:
-        raise RuntimeError(f"Failed to decode and load credentials: {e}")
+        raise RuntimeError(f"Failed to decode or load credentials: {e}")
 else:
     raise RuntimeError("Missing GOOGLE_CREDENTIALS_B64 in environment!")
 
