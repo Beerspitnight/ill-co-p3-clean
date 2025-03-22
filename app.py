@@ -48,8 +48,10 @@ load_dotenv()
 
 # Decode base64-encoded Google credentials from Render
 creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+print("✅ Length of creds_b64:", len(creds_b64 or ''))
+print("✅ First 100 characters of creds_b64:", (creds_b64 or '')[:100])
 
-if creds_b64:
+if creds_b64 and creds_b64.strip():
     try:
         creds_bytes = base64.b64decode(creds_b64)
         creds_path = "/tmp/google-credentials.json"
