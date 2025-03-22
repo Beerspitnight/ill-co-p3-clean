@@ -24,6 +24,7 @@ import csv
 import tempfile
 import re
 import uuid
+import base64
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from pydantic import BaseModel
@@ -42,8 +43,25 @@ import socket
 socket.setdefaulttimeout(20)  # 20 seconds timeout
 
 # Load environment variables from .env file
+from dotenv import load_dotenv
 load_dotenv()
-creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+# Decode base64 JSON and write to temp file
+creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+
+if creds_b64:
+    try:
+        creds_bytes = base64.b64decode(creds_b64)
+        creds_path = "/tmp/google-credentials.json"
+
+        with open(creds_path, "wb") as f:
+            f.write(creds_bytes)
+
+        credentials = service_account.Credentials.from_service_account_file(creds_path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to decode and load credentials: {e}")
+else:
+    raise RuntimeError("Missing GOOGLE_CREDENTIALS_B64 in environment!")
 
 # Force usage of system DNS resolver instead of eventlet's
 os.environ['EVENTLET_NO_GREENDNS'] = 'yes'
