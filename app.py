@@ -46,29 +46,36 @@ socket.setdefaulttimeout(20)  # 20 seconds timeout
 from dotenv import load_dotenv
 load_dotenv()
 
-# Decode base64-encoded Google credentials from Render
-creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
-print("✅ Length of creds_b64:", len(creds_b64 or ''))
-print("✅ First 100 characters of creds_b64:", (creds_b64 or '')[:100])
+# For local development, load credentials directly from file
+creds_path = "google-credentials.json"  # path to your local file
+credentials = service_account.Credentials.from_service_account_file(creds_path)
 
-if creds_b64 and creds_b64.strip():
-    try:
-        creds_bytes = base64.b64decode(creds_b64)
-        creds_path = "/tmp/google-credentials.json"
-        
-        # Write to temp file
-        with open(creds_path, "wb") as f:
-            f.write(creds_bytes)
+# ✅ Tell Google APIs where the file is
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
 
-        # ✅ This is the key part: tell Google APIs where the file is
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
-
-        credentials = service_account.Credentials.from_service_account_file(creds_path)
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to decode or load credentials: {e}")
-else:
-    raise RuntimeError("Missing GOOGLE_CREDENTIALS_B64 in environment!")
+# Commented out previous code:
+# creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+# print("✅ Length of creds_b64:", len(creds_b64 or ''))
+# print("✅ First 100 characters of creds_b64:", (creds_b64 or '')[:100])
+# 
+# if creds_b64 and creds_b64.strip():
+#     try:
+#         creds_bytes = base64.b64decode(creds_b64)
+#         creds_path = "/tmp/google-credentials.json"
+#         
+#         # Write to temp file
+#         with open(creds_path, "wb") as f:
+#             f.write(creds_bytes)
+# 
+#         # ✅ This is the key part: tell Google APIs where the file is
+#         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
+# 
+#         credentials = service_account.Credentials.from_service_account_file(creds_path)
+# 
+#     except Exception as e:
+#         raise RuntimeError(f"Failed to decode or load credentials: {e}")
+# else:
+#     raise RuntimeError("Missing GOOGLE_CREDENTIALS_B64 in environment!")
 
 # Force usage of system DNS resolver instead of eventlet's
 os.environ['EVENTLET_NO_GREENDNS'] = 'yes'
