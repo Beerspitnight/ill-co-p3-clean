@@ -44,7 +44,7 @@ socket.setdefaulttimeout(20)  # 20 seconds timeout
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
-load_dotenv("/tmp/clean.env")
+load_dotenv()
 
 # Decode base64-encoded Google credentials from Render
 creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
