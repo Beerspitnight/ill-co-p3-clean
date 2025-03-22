@@ -735,7 +735,7 @@ if __name__ == "__main__":
         port = validate_port(port_env)
         # Use socketio.run instead of app.run
         is_debug_mode = os.environ.get("FLASK_ENV") == "development"
-        socketio.run(app, host="0.0.0.0", port=port, use_reloader=is_debug_mode)
+        app.run(debug=True)
     except (ValueError, RuntimeError) as e:
         logger.error(f"Failed to start server: {e}")
 # Move the application startup code to after all the implementation is done
