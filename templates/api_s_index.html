@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibraryCloud API Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .endpoint {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        pre {
+            background-color: #f9f9f9;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LibraryCloud API Test Interface</h1>
+    
+    <div class="endpoint">
+        <h2>Search Google Books</h2>
+        <input type="text" id="googleQuery" placeholder="Enter search query...">
+        <button onclick="searchGoogleBooks()">Search</button>
+        <pre id="googleResults">Results will appear here...</pre>
+    </div>
+    
+    <div class="endpoint">
+        <h2>Search OpenLibrary</h2>
+        <input type="text" id="openLibraryQuery" placeholder="Enter search query...">
+        <button onclick="searchOpenLibrary()">Search</button>
+        <pre id="openLibraryResults">Results will appear here...</pre>
+    </div>
+    
+    <div class="endpoint">
+        <h2>List Search Results</h2>
+        <button onclick="listResults()">List Results</button>
+        <pre id="listResults">Results will appear here...</pre>
+    </div>
+    
+    <div class="endpoint">
+        <h2>Test Google Drive Connection</h2>
+        <button onclick="testDrive()">Test Drive</button>
+        <pre id="driveResults">Results will appear here...</pre>
+    </div>
+
+    <footer>by BeerSpitNight</footer>
+    <h2>Search Books</h2>
+    <label for="apiKey">API Key:</label>
+    <input type="text" id="apiKey" placeholder="Enter API Key"><br><br>
+    
+    <label for="query">Search Query:</label>
+    <input type="text" id="query" placeholder="Enter search term">
+    <label for="page">Page:</label>
+    <input type="number" id="page" placeholder="Enter page number" value="1"><br><br>
+    
+    <label for="pageSize">Page Size:</label>
+    <input type="number" id="pageSize" placeholder="Enter page size" value="5"><br><br>
+    
+    <button onclick="searchBooks()">Search</button>
+    
+    <table id="resultsTable" border="1">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Published Date</th>
+            </tr>
+        </thead>
+        <tbody id="results"></tbody>
+    </table>
+
+    <script>
+        async function searchGoogleBooks() {
+            const query = document.getElementById('googleQuery').value;
+            const resultsElement = document.getElementById('googleResults');
+            
+            if (!query) {
+                resultsElement.textContent = "Please enter a search query";
+                return;
+            }
+            
+            resultsElement.textContent = "Searching...";
+            
+            try {
+                const response = await fetch(`/search_books?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                resultsElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultsElement.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function searchOpenLibrary() {
+            const query = document.getElementById('openLibraryQuery').value;
+            const resultsElement = document.getElementById('openLibraryResults');
+            
+            if (!query) {
+                resultsElement.textContent = "Please enter a search query";
+                return;
+            }
+            
+            resultsElement.textContent = "Searching...";
+            
+            try {
+                const response = await fetch(`/search_openlibrary?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                resultsElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultsElement.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function listResults() {
+            const resultsElement = document.getElementById('listResults');
+            resultsElement.textContent = "Fetching results...";
+            
+            try {
+                const response = await fetch('/list_results');
+                const data = await response.json();
+                resultsElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultsElement.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testDrive() {
+            const resultsElement = document.getElementById('driveResults');
+            resultsElement.textContent = "Testing Google Drive connection...";
+            
+            try {
+                const response = await fetch('/test_drive');
+                const data = await response.json();
+                resultsElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultsElement.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function searchBooks() {
+            const apiKey = document.getElementById("apiKey").value;
+            const query = document.getElementById("query").value;
+            const page = document.getElementById("page").value;
+            const pageSize = document.getElementById("pageSize").value;
+            const url = `https://ill-co-p2-d996ab2fc75c.herokuapp.com/search_books?query=${query}&page=${page}&page_size=${pageSize}`;
+    
+            fetch(url, {
+                headers: { "X-API-KEY": apiKey }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Unauthorized or invalid API key");
+                }
+                return response.json();
+            })
+            .then(data => {
+                const resultsTableBody = document.getElementById("results");
+                resultsTableBody.innerHTML = ""; // Clear previous results
+                data.books.forEach(book => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>${book.publishedDate}</td>
+                    `;
+                    resultsTableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                const resultsElement = document.getElementById("results");
+                resultsElement.textContent = `Error: ${error.message}`;
+                resultsElement.className = "error";
+                console.error("Error:", error);
+            });
+        }
+    </script>
+</body>
+</html>

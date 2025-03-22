@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Illustrator Co-Pilot - Floating Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Floating Chat Button -->
+    <button class="chat-button" id="openChat">💬 Chat</button>
+
+    <!-- Floating Chat Box -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            Illustrator Co-Pilot 
+            <span class="close-chat" id="closeChat">&times;</span>
+        </div>
+
+        <div class="chat-options">
+            <input type="file" id="screenshot-input" accept="image/png, image/jpeg" style="display: none;">
+            <button class="btn upload-screenshot" id="uploadScreenshot">📤 Upload Screenshot</button>
+            <button class="btn process-help">Process Help</button>
+            <button class="btn design-help">Design Help</button>
+            <button class="btn tutorials">Tutorials</button>
+        </div>
+        <img id="screenshot-preview" style="display:none; max-width: 100%; margin-top: 10px;">
+
+        <div class="chat-box" id="chat-box">
+            <p><strong>AI:</strong> Hello! How can I help?</p>
+        </div>
+
+        <div class="chat-input-container">
+            <textarea id="user-input" placeholder="Type a message..."></textarea>
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <!-- Socket.IO Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        // Constants for button messages
+        const PROCESS_HELP_MESSAGE = "I need help with a process.";
+        const DESIGN_HELP_MESSAGE = "I need help with design.";
+        const TUTORIALS_MESSAGE = "I need a tutorial.";
+
+        // Open and Close Chat
+        const chatButton = document.getElementById("openChat");
+        const chatContainer = document.getElementById("chatContainer");
+        const closeChat = document.getElementById("closeChat");
+
+        chatButton.addEventListener("click", () => {
+            chatContainer.style.display = "flex";
+            chatButton.style.display = "none"; // Hide button when open
+        });
+
+        closeChat.addEventListener("click", () => {
+            chatContainer.style.display = "none";
+            chatButton.style.display = "block"; // Show button when closed
+        });
+function handleUploadScreenshotClick() {
+    document.getElementById("screenshot-input").click();
+}
+
+document.getElementById("screenshot-input").addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        console.log("No file selected.");
+        return;
+    }
+
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        // Display the preview
+        const imgPreview = document.getElementById("screenshot-preview");
+        imgPreview.src = e.target.result;
+            // Upload the image: This function sends the selected screenshot file to the server
+            // using a POST request. It expects the server to handle the image upload and return
+            // a JSON response. If successful, a success message is displayed in the chat; otherwise,
+            // an error message is shown.
+            uploadScreenshot(file);
+        // Upload the image
+        uploadScreenshot(file);
+    };
+
+    reader.readAsDataURL(file);
+});
+
+function uploadScreenshot(file) {
+    const formData = new FormData();
+    formData.append("screenshot", file);
+
+    fetch("/upload_screenshot", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("Upload successful:", data);
+        addMessage("Screenshot uploaded successfully. AI is analyzing...", "user-message");
+    })
+    .catch(error => {
+        console.error("Error uploading screenshot:", error);
+        addMessage(`Error uploading screenshot: ${error.message}. Please try again.`, "user-message");
+    });
+}
+
+        // Chat Logic
+        const chatBox = document.getElementById("chat-box");
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+
+        sendBtn.addEventListener("click", () => {
+            const msg = userInput.value.trim();
+            if (msg.length > 0) {
+                addMessage(msg, "user-message");
+                socket.emit("message", msg);
+                userInput.value = "";
+            }
+        });
+
+        userInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        socket.on("response", (data) => {
+            console.log("Received response:", data);
+        });
+
+        function addMessage(text, className) {
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message", className);
+            msgDiv.textContent = text;
+            chatBox.appendChild(msgDiv);
+
+            // Limit the number of messages displayed
+            const maxMessages = 50;
+            while (chatBox.children.length > maxMessages) {
+                chatBox.removeChild(chatBox.firstChild);
+            }
+        }
+
+document.querySelector(".process-help").addEventListener("click", () => {
+    addMessage(PROCESS_HELP_MESSAGE, "user-message");
+    socket.emit("message", PROCESS_HELP_MESSAGE);
+});
+
+document.querySelector(".design-help").addEventListener("click", () => {
+    addMessage(DESIGN_HELP_MESSAGE, "user-message");
+    socket.emit("message", DESIGN_HELP_MESSAGE);
+});
+
+document.querySelector(".tutorials").addEventListener("click", () => {
+    addMessage(TUTORIALS_MESSAGE, "user-message");
+    socket.emit("message", TUTORIALS_MESSAGE);
+});
+    socket.emit("message", "I need help with design.");
+
+document.querySelector(".tutorials").addEventListener("click", () => {
+    addMessage("I need a tutorial.", "user-message");
+    socket.emit("message", "I need a tutorial.");
+});
+
+    </script>
+
+</body>
+</html>

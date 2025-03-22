@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables and virtualenv
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.spyderproject
+.spyproject
+.ropeproject
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Application specific
+*.log
+*.csv
+*.db
+*.sqlite
+logs/
+temp/
+tmp/
+
+*.git
+# Google credentials
+credentials/
+*.json
+# Exclude specific JSON files that should be tracked
+!package.json
+
+# Heroku
+.pytest_cache/
+
+# Credential files
+encoded_credentials.txt
+*credentials*.txt
+*secret*.txt
+*key*.txt
+credentials/
+
+# Backup
+app.py.backup.py
